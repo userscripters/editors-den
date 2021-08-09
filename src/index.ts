@@ -10,10 +10,7 @@ interface Document {
 type TagInfo = { name: string };
 
 (async () => {
-    const asyncReduce = async <T>(
-        array: ((acc: T) => Promise<T> | T)[],
-        init: T
-    ) => {
+    const asyncReduce = <T>(array: ((acc: T) => Promise<T> | T)[], init: T) => {
         return array.reduce(
             async (a, c) => await c(await a),
             Promise.resolve(init)
