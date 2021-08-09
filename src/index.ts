@@ -22,11 +22,11 @@ type TagInfo = { name: string };
 
     const getMatchingTags = async (
         search: string,
-        site = "stackoverflow"
+        version = 2.3
     ): Promise<TagInfo[]> => {
-        const uri = new URL(`https://api.stackexchange.com/2.2/tags`);
+        const uri = new URL(`https://api.stackexchange.com/${version}/tags`);
         uri.search = new URLSearchParams({
-            site,
+            site: location.hostname,
             inname: search.toLowerCase(),
             key: "C0zI0cCMTw5GRQIqHhvTHw((",
         }).toString();
