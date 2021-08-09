@@ -28,6 +28,7 @@ type TagInfo = { name: string };
         uri.search = new URLSearchParams({
             site,
             inname: search.toLowerCase(),
+            key: "C0zI0cCMTw5GRQIqHhvTHw((",
         }).toString();
         const res = await fetch(uri.toString());
         if (!res.ok) return [];
