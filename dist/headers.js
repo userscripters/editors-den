@@ -13,5 +13,5 @@
 // @namespace       userscripters
 // @source          git+https://github.com/userscripters/editors-den.git
 // @supportURL      https://github.com/userscripters/editors-den/issues
-// @version         1.0.0
+// @version         0.1.0
 // ==/UserScript==
