@@ -333,6 +333,13 @@ type StacksIconOptions = StacksCommonOptions & {
         return matchingTag ? title.replace(tagPrefixedRegEx, "") : title;
     };
 
+    const disabledOn = [/chat\.(?:stackoverflow|(meta\.)?stackexchange)\.com/];
+    const isDisabled = disabledOn.reduce(
+        (_a, c) => c.test(location.href),
+        false
+    );
+    if (isDisabled) return;
+
     w.addEventListener("load", () => {
         const mainId = config.ids.main;
 

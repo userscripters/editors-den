@@ -90,12 +90,12 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         sheet.insertRule("#" + id + " strong {\n            background-color: var(--black-400);\n            mask-image: url(" + inkAndQuill + ");\n            mask-repeat: no-repeat;\n            mask-size: 18px 18px;\n            mask-origin: content-box;\n            mask-position: center;\n            -webkit-mask-image: url(" + inkAndQuill + ");\n            -webkit-mask-repeat: no-repeat;\n            -webkit-mask-size: 18px 18px;\n            -webkit-mask-origin: content-box;\n            -webkit-mask-position: center;\n            min-height: 18px;\n        }");
         sheet.insertRule("#" + id + " .-link:hover strong {\n            background-color: var(--black-700);\n        }");
     };
-    var makeStacksIcon = function (name, pathConfig, _a) {
-        var _b;
-        var _c = _a === void 0 ? {} : _a, _d = _c.classes, classes = _d === void 0 ? [] : _d, _e = _c.width, width = _e === void 0 ? 14 : _e, _f = _c.height, height = _f === void 0 ? width : _f;
+    var makeStacksIcon = function (name, pathConfig, _b) {
+        var _c;
+        var _d = _b === void 0 ? {} : _b, _e = _d.classes, classes = _e === void 0 ? [] : _e, _f = _d.width, width = _f === void 0 ? 14 : _f, _g = _d.height, height = _g === void 0 ? width : _g;
         var ns = "http://www.w3.org/2000/svg";
         var svg = document.createElementNS(ns, "svg");
-        (_b = svg.classList).add.apply(_b, __spreadArray(["svg-icon", name], __read(classes)));
+        (_c = svg.classList).add.apply(_c, __spreadArray(["svg-icon", name], __read(classes)));
         svg.setAttribute("width", width.toString());
         svg.setAttribute("height", height.toString());
         svg.setAttribute("viewBox", "0 0 " + width + " " + height);
@@ -105,11 +105,11 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         svg.append(path);
         return [svg, path];
     };
-    var makeStacksToast = function (id, text, _a) {
-        var _b, _c;
-        var _d = _a === void 0 ? {} : _a, _e = _d.buttons, buttons = _e === void 0 ? [] : _e, _f = _d.classes, classes = _f === void 0 ? [] : _f, _g = _d.msgClasses, msgClasses = _g === void 0 ? [] : _g, _h = _d.type, type = _h === void 0 ? "none" : _h, _j = _d.important, important = _j === void 0 ? false : _j;
+    var makeStacksToast = function (id, text, _b) {
+        var _c, _d;
+        var _e = _b === void 0 ? {} : _b, _f = _e.buttons, buttons = _f === void 0 ? [] : _f, _g = _e.classes, classes = _g === void 0 ? [] : _g, _h = _e.msgClasses, msgClasses = _h === void 0 ? [] : _h, _j = _e.type, type = _j === void 0 ? "none" : _j, _k = _e.important, important = _k === void 0 ? false : _k;
         var wrap = document.createElement("div");
-        (_b = wrap.classList).add.apply(_b, __spreadArray(["s-toast"], __read(classes)));
+        (_c = wrap.classList).add.apply(_c, __spreadArray(["s-toast"], __read(classes)));
         wrap.setAttribute("aria-hidden", "true");
         wrap.setAttribute("role", "alertdialog");
         wrap.setAttribute("aria-labelledby", "notice-message");
@@ -121,7 +121,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         if (important)
             aside.classList.add("s-notice__important");
         var msgWrap = document.createElement("div");
-        (_c = msgWrap.classList).add.apply(_c, __spreadArray(["d-flex",
+        (_d = msgWrap.classList).add.apply(_d, __spreadArray(["d-flex",
             "gs16",
             "gsx",
             "ai-center",
@@ -136,7 +136,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         dismissBtn.classList.add("s-btn", "s-notice--btn");
         dismissBtn.setAttribute("aria-label", "Dismiss");
         buttons.push(dismissBtn);
-        var _k = __read(makeStacksIcon("iconClearSm", "M12 3.41 10.59 2 7 5.59 3.41 2 2 3.41 5.59 7 2 10.59 3.41 12 7 8.41 10.59 12 12 10.59 8.41 7 12 3.41z", { width: 14 }), 1), dismissIcon = _k[0];
+        var _l = __read(makeStacksIcon("iconClearSm", "M12 3.41 10.59 2 7 5.59 3.41 2 2 3.41 5.59 7 2 10.59 3.41 12 7 8.41 10.59 12 12 10.59 8.41 7 12 3.41z", { width: 14 }), 1), dismissIcon = _l[0];
         dismissBtn.append(dismissIcon);
         btnWrap.append.apply(btnWrap, __spreadArray([], __read(buttons)));
         msgWrap.append(message, btnWrap);
@@ -191,13 +191,13 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         });
     };
     var asyncReduce = function (array, init) {
-        return array.reduce(function (a, c) { return __awaiter(void 0, void 0, void 0, function () { var _a; return __generator(this, function (_b) {
-            switch (_b.label) {
+        return array.reduce(function (a, c) { return __awaiter(void 0, void 0, void 0, function () { var _b; return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
-                    _a = c;
+                    _b = c;
                     return [4, a];
-                case 1: return [4, _a.apply(void 0, [_b.sent()])];
-                case 2: return [2, _b.sent()];
+                case 1: return [4, _b.apply(void 0, [_c.sent()])];
+                case 2: return [2, _c.sent()];
             }
         }); }); }, Promise.resolve(init));
     };
@@ -205,8 +205,8 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         if (version === void 0) { version = 2.3; }
         return __awaiter(void 0, void 0, void 0, function () {
             var uri, res, items;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         uri = new URL("https://api.stackexchange.com/" + version + "/tags");
                         uri.search = new URLSearchParams({
@@ -216,12 +216,12 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
                         }).toString();
                         return [4, fetch(uri.toString())];
                     case 1:
-                        res = _a.sent();
+                        res = _b.sent();
                         if (!res.ok)
                             return [2, []];
                         return [4, res.json()];
                     case 2:
-                        items = (_a.sent()).items;
+                        items = (_b.sent()).items;
                         return [2, items];
                 }
             });
@@ -233,8 +233,8 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         var refMatches = __spreadArray([], __read(text.matchAll(refsRegex)));
         var existing = refMatches.length;
         var matches = __spreadArray([], __read(text.matchAll(linkRegex)));
-        var refsToAdd = matches.reduce(function (acc, _a, idx) {
-            var _b = __read(_a, 3), _ = _b[0], _text = _b[1], link = _b[2];
+        var refsToAdd = matches.reduce(function (acc, _b, idx) {
+            var _c = __read(_b, 3), _ = _c[0], _text = _c[1], link = _c[2];
             return acc + "[" + (existing + idx + 1) + "]: " + link + "\n";
         }, "");
         return text + "\n\n" + refsToAdd;
@@ -280,42 +280,46 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         return text.replace(/\s+([,.?!])/gm, "$1");
     };
     var removeTagDuplication = function (title) { return __awaiter(void 0, void 0, void 0, function () {
-        var tagPrefixedRegEx, _a, tagname, lcased, tags, matchingTag;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var tagPrefixedRegEx, _b, tagname, lcased, tags, matchingTag;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
                     tagPrefixedRegEx = /^(\w+)\s+-\s+/i;
-                    _a = __read(tagPrefixedRegEx.exec(title) || [], 2), tagname = _a[1];
+                    _b = __read(tagPrefixedRegEx.exec(title) || [], 2), tagname = _b[1];
                     if (!tagname)
                         return [2, title];
                     lcased = tagname.toLowerCase();
                     return [4, getMatchingTags(lcased)];
                 case 1:
-                    tags = _b.sent();
-                    matchingTag = tags.find(function (_a) {
-                        var name = _a.name;
+                    tags = _c.sent();
+                    matchingTag = tags.find(function (_b) {
+                        var name = _b.name;
                         return name === lcased;
                     });
                     return [2, matchingTag ? title.replace(tagPrefixedRegEx, "") : title];
             }
         });
     }); };
+    var disabledOn = [/chat\.(?:stackoverflow|(meta\.)?stackexchange)\.com/];
+    var isDisabled = disabledOn.reduce(function (_a, c) { return c.test(location.href); }, false);
+    if (isDisabled)
+        return;
     w.addEventListener("load", function () {
         var mainId = config.ids.main;
         addStyles(d, mainId);
-        var notEditableToast = makeStacksToast(mainId + "-no-editable", "This is not a page you are looking for", {
+        var notEditableToast = makeStacksToast(mainId + "-no-editable", "This is not the page you are looking for", {
             important: true,
             type: "warning",
         });
-        var editSuccessToast = makeStacksToast(mainId + "-edit-success", "Successfully edited", {
+        var editSuccessToast = makeStacksToast(mainId + "-edit-success", "Successfully edited the post", {
             important: true,
             type: "success",
         });
         d.body.append(notEditableToast, editSuccessToast);
         addMenuItem(mainId, function () { return __awaiter(void 0, void 0, void 0, function () {
             var area, title, bodyFixers, titleFixers, event, fixed, titleFixed;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         area = d.querySelector("[name=post-text]");
                         title = d.getElementById("title");
@@ -345,18 +349,18 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
                         if (!area) return [3, 2];
                         return [4, asyncReduce(bodyFixers, area.value)];
                     case 1:
-                        fixed = _a.sent();
+                        fixed = _b.sent();
                         area.value = fixed;
                         area.dispatchEvent(event);
-                        _a.label = 2;
+                        _b.label = 2;
                     case 2:
                         if (!title) return [3, 4];
                         return [4, asyncReduce(titleFixers, title.value)];
                     case 3:
-                        titleFixed = _a.sent();
+                        titleFixed = _b.sent();
                         title.value = titleFixed;
                         title.dispatchEvent(event);
-                        _a.label = 4;
+                        _b.label = 4;
                     case 4:
                         showToast(editSuccessToast, 3);
                         return [2];

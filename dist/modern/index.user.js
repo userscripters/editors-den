@@ -201,14 +201,18 @@
         const matchingTag = tags.find(({ name }) => name === lcased);
         return matchingTag ? title.replace(tagPrefixedRegEx, "") : title;
     };
+    const disabledOn = [/chat\.(?:stackoverflow|(meta\.)?stackexchange)\.com/];
+    const isDisabled = disabledOn.reduce((_a, c) => c.test(location.href), false);
+    if (isDisabled)
+        return;
     w.addEventListener("load", () => {
         const mainId = config.ids.main;
         addStyles(d, mainId);
-        const notEditableToast = makeStacksToast(`${mainId}-no-editable`, "This is not a page you are looking for", {
+        const notEditableToast = makeStacksToast(`${mainId}-no-editable`, "This is not the page you are looking for", {
             important: true,
             type: "warning",
         });
-        const editSuccessToast = makeStacksToast(`${mainId}-edit-success`, "Successfully edited", {
+        const editSuccessToast = makeStacksToast(`${mainId}-edit-success`, "Successfully edited the post", {
             important: true,
             type: "success",
         });
