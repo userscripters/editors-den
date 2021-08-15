@@ -17,9 +17,11 @@ jobs:
             - name: Install dependencies
               run: |
                   npm config set //npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN
-                  npm ci
+                  npm install --production=false
               env:
                   NODE_AUTH_TOKEN: ${{github.token}}
+                  # prevent patch-package from trying to patch dtslint in deps
+                  NODE_ENV: production
             - name: Compile
               run: npm run build-all
             - name: Run tests
