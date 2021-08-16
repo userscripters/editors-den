@@ -26,12 +26,137 @@ type StacksIconOptions = StacksCommonOptions & {
     height?: number;
 };
 
+interface Window {
+    Stacks: typeof Stacks;
+    [x: string]: unknown;
+}
+
+type RemoveIndex<T> = {
+    [P in keyof T as string extends P
+        ? never
+        : number extends P
+        ? never
+        : P]: T[P];
+};
+
+type AsyncStorage = RemoveIndex<
+    {
+        [P in keyof Storage]: Storage[P] extends Function
+            ? (
+                  ...args: Parameters<Storage[P]>
+              ) => Promise<ReturnType<Storage[P]>>
+            : Promise<Storage[P]>;
+    }
+>;
+
 ((w, d) => {
     const config = {
         ids: {
             main: "editors-den",
         },
     };
+
+    const storageMap: {
+        GM_setValue: Storage;
+        GM: AsyncStorage;
+    } = {
+        GM_setValue: {
+            get length() {
+                return GM_listValues().length;
+            },
+            clear() {
+                const keys = GM_listValues();
+                return keys.forEach((key) => GM_deleteValue(key));
+            },
+            key(index) {
+                return GM_listValues()[index];
+            },
+            getItem(key) {
+                return GM_getValue(key);
+            },
+            setItem(key, val) {
+                return GM_setValue(key, val);
+            },
+            removeItem(key) {
+                return GM_deleteValue(key);
+            },
+        },
+        GM: {
+            get length() {
+                return GM.listValues().then((v) => v.length);
+            },
+            async clear() {
+                const keys = await GM.listValues();
+                return keys.forEach((key) => GM.deleteValue(key));
+            },
+            async key(index) {
+                return (await GM.listValues())[index];
+            },
+            async getItem(key) {
+                const item = await GM.getValue(key);
+                return item === void 0 ? null : item?.toString();
+            },
+            setItem(key, val) {
+                return GM.setValue(key, val);
+            },
+            removeItem(key) {
+                return GM.deleteValue(key);
+            },
+        },
+    };
+
+    //TODO: switch to configurable preference
+    const [, storage] =
+        Object.entries(storageMap).find(
+            ([key]) => typeof w[key] !== "undefined"
+        ) || [];
+
+    class Store {
+        static storage: Storage | AsyncStorage = storage || localStorage;
+
+        static prefix = config.ids.main;
+
+        static clear(): void {
+            const { storage, prefix } = this;
+            storage.removeItem(prefix);
+        }
+
+        private static async open() {
+            const { storage, prefix } = this;
+            const val = await storage.getItem(prefix);
+            return val ? JSON.parse(val) : {};
+        }
+
+        static async has(key: string) {
+            const store = await Store.open();
+            return key in store;
+        }
+
+        static async load<T>(key: string, def?: T): Promise<T> {
+            const val = (await Store.open())[key];
+            return val !== void 0 ? val : def;
+        }
+
+        static async save<T>(key: string, val: T) {
+            const { storage, prefix } = this;
+            const old = await Store.open();
+            old[key] = val;
+            return storage.setItem(prefix, JSON.stringify(old));
+        }
+
+        static async toggle(key: string) {
+            return Store.save(key, !(await Store.load(key)));
+        }
+
+        static async remove(key: string) {
+            const { prefix } = this;
+
+            const old = await this.load<Record<string, any>>(prefix, {});
+            delete old[key];
+
+            return Store.save(key, old);
+        }
+    }
 
     const addStyles = (d: Document, id: string) => {
         const style = d.createElement("style");
@@ -272,23 +397,8 @@ type StacksIconOptions = StacksCommonOptions & {
 
         return `${text}\n\n${refsToAdd}`;
     };
-    const capitalize = (text: string) => {
-        const brands = [
-            "I",
-            "Gmail",
-            "Google",
-            "Firefox",
-            "JavaScript",
-            "HTML",
-            "jQuery",
-            "URL",
-            "SDK",
-            "Safari",
-            "Linux",
-            "Greasemonkey",
-            "API",
-        ];
-        return brands.reduce(
+    const makeCapitalizationFixer = (caps: string[]) => (text: string) => {
+        return caps.reduce(
             (a, c) =>
                 a.replace(
                     new RegExp(`(\\s+|^)${c}(\\s+|$)`, "gmi"),
@@ -297,6 +407,7 @@ type StacksIconOptions = StacksCommonOptions & {
             text
         );
     };
+
     const removeExcessiveLinkFormatting = (text: string) =>
         text.replace(/\*{2}(\[.+?\]\(.+?\))\*{2}/gim, "$1");
 
@@ -320,7 +431,7 @@ type StacksIconOptions = StacksCommonOptions & {
         text.replace(/\s+([,.?!])/gm, "$1");
 
     const removeTagDuplication = async (title: string) => {
-        const tagPrefixedRegEx = /^(\w+)\s+-\s+/i;
+        const tagPrefixedRegEx = /^(\w+)(?:\s+-|:)\s+/i;
 
         const [, tagname] = tagPrefixedRegEx.exec(title) || [];
         if (!tagname) return title;
@@ -371,6 +482,38 @@ type StacksIconOptions = StacksCommonOptions & {
 
             if (!area && !title) return showToast(notEditableToast, 3);
 
+            //TODO: move out of the source
+            const capsDefaults = [
+                "I",
+                "Gmail",
+                "Google",
+                "Firefox",
+                "JavaScript",
+                "TypeScript",
+                "HTML",
+                "jQuery",
+                "URL",
+                "SDK",
+                "Safari",
+                "Linux",
+                "Greasemonkey",
+                "API",
+            ];
+
+            const capsProp = "capitalizations";
+
+            const isInitialized = await Store.has(capsProp);
+            if (!isInitialized) {
+                await Store.save(capsProp, capsDefaults);
+            }
+
+            const capitalizations = await Store.load<string[]>(
+                capsProp,
+                capsDefaults
+            );
+
+            const capitalize = makeCapitalizationFixer(capitalizations);
+
             const bodyFixers = [
                 capitalize,
                 removeNoise,
@@ -386,8 +529,8 @@ type StacksIconOptions = StacksCommonOptions & {
 
             const titleFixers = [
                 removeMultispace,
-                capitalize,
                 removeTagDuplication,
+                capitalize,
             ];
 
             //forces preview update
