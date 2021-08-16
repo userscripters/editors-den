@@ -1,7 +1,10 @@
 // ==UserScript==
 // @author          Oleg Valter <oleg.a.valter@gmail.com>
 // @description     semi-automated editing with style
-// @grant           none
+// @grant           GM_deleteValue
+// @grant           GM_getValue
+// @grant           GM_listValues
+// @grant           GM_setValue
 // @homepage        https://github.com/userscripters/editors-den#readme
 // @match           https://*.askubuntu.com/*
 // @match           https://*.mathoverflow.net/*
@@ -11,6 +14,7 @@
 // @match           https://*.stackoverflow.com/*
 // @name            editors-den
 // @namespace       userscripters
+// @run-at          document-start
 // @source          git+https://github.com/userscripters/editors-den.git
 // @supportURL      https://github.com/userscripters/editors-den/issues
 // @version         0.1.0
@@ -23,6 +27,88 @@
             main: "editors-den",
         },
     };
+    const storageMap = {
+        GM_setValue: {
+            get length() {
+                return GM_listValues().length;
+            },
+            clear() {
+                const keys = GM_listValues();
+                return keys.forEach((key) => GM_deleteValue(key));
+            },
+            key(index) {
+                return GM_listValues()[index];
+            },
+            getItem(key) {
+                return GM_getValue(key);
+            },
+            setItem(key, val) {
+                return GM_setValue(key, val);
+            },
+            removeItem(key) {
+                return GM_deleteValue(key);
+            },
+        },
+        GM: {
+            get length() {
+                return GM.listValues().then((v) => v.length);
+            },
+            async clear() {
+                const keys = await GM.listValues();
+                return keys.forEach((key) => GM.deleteValue(key));
+            },
+            async key(index) {
+                return (await GM.listValues())[index];
+            },
+            async getItem(key) {
+                const item = await GM.getValue(key);
+                return item === void 0 ? null : item === null || item === void 0 ? void 0 : item.toString();
+            },
+            setItem(key, val) {
+                return GM.setValue(key, val);
+            },
+            removeItem(key) {
+                return GM.deleteValue(key);
+            },
+        },
+    };
+    const [, storage] = Object.entries(storageMap).find(([key]) => typeof w[key] !== "undefined") || [];
+    class Store {
+        static clear() {
+            const { storage, prefix } = this;
+            storage.removeItem(prefix);
+        }
+        static async open() {
+            const { storage, prefix } = this;
+            const val = await storage.getItem(prefix);
+            return val ? JSON.parse(val) : {};
+        }
+        static async has(key) {
+            const store = await Store.open();
+            return key in store;
+        }
+        static async load(key, def) {
+            const val = (await Store.open())[key];
+            return val !== void 0 ? val : def;
+        }
+        static async save(key, val) {
+            const { storage, prefix } = this;
+            const old = await Store.open();
+            old[key] = val;
+            return storage.setItem(prefix, JSON.stringify(old));
+        }
+        static async toggle(key) {
+            return Store.save(key, !(await Store.load(key)));
+        }
+        static async remove(key) {
+            const { prefix } = this;
+            const old = await this.load(prefix, {});
+            delete old[key];
+            return Store.save(key, old);
+        }
+    }
+    Store.storage = storage || localStorage;
+    Store.prefix = config.ids.main;
     const addStyles = (d, id) => {
         const style = d.createElement("style");
         d.head.append(style);
@@ -165,23 +251,8 @@
         const refsToAdd = matches.reduce((acc, [_, _text, link], idx) => `${acc}[${existing + idx + 1}]: ${link}\n`, "");
         return `${text}\n\n${refsToAdd}`;
     };
-    const capitalize = (text) => {
-        const brands = [
-            "I",
-            "Gmail",
-            "Google",
-            "Firefox",
-            "JavaScript",
-            "HTML",
-            "jQuery",
-            "URL",
-            "SDK",
-            "Safari",
-            "Linux",
-            "Greasemonkey",
-            "API",
-        ];
-        return brands.reduce((a, c) => a.replace(new RegExp(`(\\s+|^)${c}(\\s+|$)`, "gmi"), `$1${c}$2`), text);
+    const makeCapitalizationFixer = (caps) => (text) => {
+        return caps.reduce((a, c) => a.replace(new RegExp(`(\\s+|^)${c}(\\s+|$)`, "gmi"), `$1${c}$2`), text);
     };
     const removeExcessiveLinkFormatting = (text) => text.replace(/\*{2}(\[.+?\]\(.+?\))\*{2}/gim, "$1");
     const reorderPunctuation = (text) => text.replace(/([?!,.])(\s+\(.+?\))/gm, "$2$1");
@@ -192,7 +263,7 @@
     const secureLinks = (text) => text.replace(/\bhttp:\/\//gim, "https://");
     const removeSpacesBeforePunctuation = (text) => text.replace(/\s+([,.?!])/gm, "$1");
     const removeTagDuplication = async (title) => {
-        const tagPrefixedRegEx = /^(\w+)\s+-\s+/i;
+        const tagPrefixedRegEx = /^(\w+)(?:\s+-|:)\s+/i;
         const [, tagname] = tagPrefixedRegEx.exec(title) || [];
         if (!tagname)
             return title;
@@ -222,6 +293,30 @@
             const title = d.getElementById("title");
             if (!area && !title)
                 return showToast(notEditableToast, 3);
+            const capsDefaults = [
+                "I",
+                "Gmail",
+                "Google",
+                "Firefox",
+                "JavaScript",
+                "TypeScript",
+                "HTML",
+                "jQuery",
+                "URL",
+                "SDK",
+                "Safari",
+                "Linux",
+                "Greasemonkey",
+                "API",
+            ];
+            const capsProp = "capitalizations";
+            const isInitialized = await Store.has(capsProp);
+            if (!isInitialized) {
+                await Store.save(capsProp, capsDefaults);
+            }
+            const capitalizations = await Store.load(capsProp, capsDefaults);
+            console.debug({ capitalizations });
+            const capitalize = makeCapitalizationFixer(capitalizations);
             const bodyFixers = [
                 capitalize,
                 removeNoise,
@@ -236,8 +331,8 @@
             ];
             const titleFixers = [
                 removeMultispace,
-                capitalize,
                 removeTagDuplication,
+                capitalize,
             ];
             const event = new Event("input", {
                 bubbles: true,

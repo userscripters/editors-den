@@ -1,7 +1,10 @@
 // ==UserScript==
 // @author          Oleg Valter <oleg.a.valter@gmail.com>
 // @description     semi-automated editing with style
-// @grant           none
+// @grant           GM_deleteValue
+// @grant           GM_getValue
+// @grant           GM_listValues
+// @grant           GM_setValue
 // @homepage        https://github.com/userscripters/editors-den#readme
 // @match           https://*.askubuntu.com/*
 // @match           https://*.mathoverflow.net/*
@@ -11,6 +14,7 @@
 // @match           https://*.stackoverflow.com/*
 // @name            editors-den
 // @namespace       userscripters
+// @run-at          document-start
 // @source          git+https://github.com/userscripters/editors-den.git
 // @supportURL      https://github.com/userscripters/editors-den/issues
 // @version         0.1.0
@@ -80,6 +84,178 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
             main: "editors-den",
         },
     };
+    var storageMap = {
+        GM_setValue: {
+            get length() {
+                return GM_listValues().length;
+            },
+            clear: function () {
+                var keys = GM_listValues();
+                return keys.forEach(function (key) { return GM_deleteValue(key); });
+            },
+            key: function (index) {
+                return GM_listValues()[index];
+            },
+            getItem: function (key) {
+                return GM_getValue(key);
+            },
+            setItem: function (key, val) {
+                return GM_setValue(key, val);
+            },
+            removeItem: function (key) {
+                return GM_deleteValue(key);
+            },
+        },
+        GM: {
+            get length() {
+                return GM.listValues().then(function (v) { return v.length; });
+            },
+            clear: function () {
+                return __awaiter(this, void 0, void 0, function () {
+                    var keys;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
+                            case 0: return [4, GM.listValues()];
+                            case 1:
+                                keys = _b.sent();
+                                return [2, keys.forEach(function (key) { return GM.deleteValue(key); })];
+                        }
+                    });
+                });
+            },
+            key: function (index) {
+                return __awaiter(this, void 0, void 0, function () {
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
+                            case 0: return [4, GM.listValues()];
+                            case 1: return [2, (_b.sent())[index]];
+                        }
+                    });
+                });
+            },
+            getItem: function (key) {
+                return __awaiter(this, void 0, void 0, function () {
+                    var item;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
+                            case 0: return [4, GM.getValue(key)];
+                            case 1:
+                                item = _b.sent();
+                                return [2, item === void 0 ? null : item === null || item === void 0 ? void 0 : item.toString()];
+                        }
+                    });
+                });
+            },
+            setItem: function (key, val) {
+                return GM.setValue(key, val);
+            },
+            removeItem: function (key) {
+                return GM.deleteValue(key);
+            },
+        },
+    };
+    var _b = __read(Object.entries(storageMap).find(function (_b) {
+        var _c = __read(_b, 1), key = _c[0];
+        return typeof w[key] !== "undefined";
+    }) || [], 2), storage = _b[1];
+    var Store = (function () {
+        function Store() {
+        }
+        Store.clear = function () {
+            var _b = this, storage = _b.storage, prefix = _b.prefix;
+            storage.removeItem(prefix);
+        };
+        Store.open = function () {
+            return __awaiter(this, void 0, void 0, function () {
+                var _b, storage, prefix, val;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            _b = this, storage = _b.storage, prefix = _b.prefix;
+                            return [4, storage.getItem(prefix)];
+                        case 1:
+                            val = _c.sent();
+                            return [2, val ? JSON.parse(val) : {}];
+                    }
+                });
+            });
+        };
+        Store.has = function (key) {
+            return __awaiter(this, void 0, void 0, function () {
+                var store;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0: return [4, Store.open()];
+                        case 1:
+                            store = _b.sent();
+                            return [2, key in store];
+                    }
+                });
+            });
+        };
+        Store.load = function (key, def) {
+            return __awaiter(this, void 0, void 0, function () {
+                var val;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0: return [4, Store.open()];
+                        case 1:
+                            val = (_b.sent())[key];
+                            return [2, val !== void 0 ? val : def];
+                    }
+                });
+            });
+        };
+        Store.save = function (key, val) {
+            return __awaiter(this, void 0, void 0, function () {
+                var _b, storage, prefix, old;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            _b = this, storage = _b.storage, prefix = _b.prefix;
+                            return [4, Store.open()];
+                        case 1:
+                            old = _c.sent();
+                            old[key] = val;
+                            return [2, storage.setItem(prefix, JSON.stringify(old))];
+                    }
+                });
+            });
+        };
+        Store.toggle = function (key) {
+            return __awaiter(this, void 0, void 0, function () {
+                var _b, _c, _d;
+                return __generator(this, function (_e) {
+                    switch (_e.label) {
+                        case 0:
+                            _c = (_b = Store).save;
+                            _d = [key];
+                            return [4, Store.load(key)];
+                        case 1: return [2, _c.apply(_b, _d.concat([!(_e.sent())]))];
+                    }
+                });
+            });
+        };
+        Store.remove = function (key) {
+            return __awaiter(this, void 0, void 0, function () {
+                var prefix, old;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            prefix = this.prefix;
+                            return [4, this.load(prefix, {})];
+                        case 1:
+                            old = _b.sent();
+                            delete old[key];
+                            return [2, Store.save(key, old)];
+                    }
+                });
+            });
+        };
+        Store.storage = storage || localStorage;
+        Store.prefix = config.ids.main;
+        return Store;
+    }());
     var addStyles = function (d, id) {
         var style = d.createElement("style");
         d.head.append(style);
@@ -239,26 +415,11 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         }, "");
         return text + "\n\n" + refsToAdd;
     };
-    var capitalize = function (text) {
-        var brands = [
-            "I",
-            "Gmail",
-            "Google",
-            "Firefox",
-            "JavaScript",
-            "HTML",
-            "jQuery",
-            "URL",
-            "SDK",
-            "Safari",
-            "Linux",
-            "Greasemonkey",
-            "API",
-        ];
-        return brands.reduce(function (a, c) {
+    var makeCapitalizationFixer = function (caps) { return function (text) {
+        return caps.reduce(function (a, c) {
             return a.replace(new RegExp("(\\s+|^)" + c + "(\\s+|$)", "gmi"), "$1" + c + "$2");
         }, text);
-    };
+    }; };
     var removeExcessiveLinkFormatting = function (text) {
         return text.replace(/\*{2}(\[.+?\]\(.+?\))\*{2}/gim, "$1");
     };
@@ -284,7 +445,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    tagPrefixedRegEx = /^(\w+)\s+-\s+/i;
+                    tagPrefixedRegEx = /^(\w+)(?:\s+-|:)\s+/i;
                     _b = __read(tagPrefixedRegEx.exec(title) || [], 2), tagname = _b[1];
                     if (!tagname)
                         return [2, title];
@@ -317,7 +478,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         });
         d.body.append(notEditableToast, editSuccessToast);
         addMenuItem(mainId, function () { return __awaiter(void 0, void 0, void 0, function () {
-            var area, title, bodyFixers, titleFixers, event, fixed, titleFixed;
+            var area, title, capsDefaults, capsProp, isInitialized, capitalizations, capitalize, bodyFixers, titleFixers, event, fixed, titleFixed;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -325,6 +486,36 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
                         title = d.getElementById("title");
                         if (!area && !title)
                             return [2, showToast(notEditableToast, 3)];
+                        capsDefaults = [
+                            "I",
+                            "Gmail",
+                            "Google",
+                            "Firefox",
+                            "JavaScript",
+                            "TypeScript",
+                            "HTML",
+                            "jQuery",
+                            "URL",
+                            "SDK",
+                            "Safari",
+                            "Linux",
+                            "Greasemonkey",
+                            "API",
+                        ];
+                        capsProp = "capitalizations";
+                        return [4, Store.has(capsProp)];
+                    case 1:
+                        isInitialized = _b.sent();
+                        if (!!isInitialized) return [3, 3];
+                        return [4, Store.save(capsProp, capsDefaults)];
+                    case 2:
+                        _b.sent();
+                        _b.label = 3;
+                    case 3: return [4, Store.load(capsProp, capsDefaults)];
+                    case 4:
+                        capitalizations = _b.sent();
+                        console.debug({ capitalizations: capitalizations });
+                        capitalize = makeCapitalizationFixer(capitalizations);
                         bodyFixers = [
                             capitalize,
                             removeNoise,
@@ -339,29 +530,29 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
                         ];
                         titleFixers = [
                             removeMultispace,
-                            capitalize,
                             removeTagDuplication,
+                            capitalize,
                         ];
                         event = new Event("input", {
                             bubbles: true,
                             cancelable: true,
                         });
-                        if (!area) return [3, 2];
+                        if (!area) return [3, 6];
                         return [4, asyncReduce(bodyFixers, area.value)];
-                    case 1:
+                    case 5:
                         fixed = _b.sent();
                         area.value = fixed;
                         area.dispatchEvent(event);
-                        _b.label = 2;
-                    case 2:
-                        if (!title) return [3, 4];
+                        _b.label = 6;
+                    case 6:
+                        if (!title) return [3, 8];
                         return [4, asyncReduce(titleFixers, title.value)];
-                    case 3:
+                    case 7:
                         titleFixed = _b.sent();
                         title.value = titleFixed;
                         title.dispatchEvent(event);
-                        _b.label = 4;
-                    case 4:
+                        _b.label = 8;
+                    case 8:
                         showToast(editSuccessToast, 3);
                         return [2];
                 }
