@@ -445,7 +445,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    tagPrefixedRegEx = /^(\w+)(?:\s+-|:)\s+/i;
+                    tagPrefixedRegEx = /^(\w+)(?:\s?[-:|])\s+/i;
                     _b = __read(tagPrefixedRegEx.exec(title) || [], 2), tagname = _b[1];
                     if (!tagname)
                         return [2, title];
@@ -514,7 +514,6 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
                     case 3: return [4, Store.load(capsProp, capsDefaults)];
                     case 4:
                         capitalizations = _b.sent();
-                        console.debug({ capitalizations: capitalizations });
                         capitalize = makeCapitalizationFixer(capitalizations);
                         bodyFixers = [
                             capitalize,

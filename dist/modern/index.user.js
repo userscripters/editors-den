@@ -263,7 +263,7 @@
     const secureLinks = (text) => text.replace(/\bhttp:\/\//gim, "https://");
     const removeSpacesBeforePunctuation = (text) => text.replace(/\s+([,.?!])/gm, "$1");
     const removeTagDuplication = async (title) => {
-        const tagPrefixedRegEx = /^(\w+)(?:\s+-|:)\s+/i;
+        const tagPrefixedRegEx = /^(\w+)(?:\s?[-:|])\s+/i;
         const [, tagname] = tagPrefixedRegEx.exec(title) || [];
         if (!tagname)
             return title;
@@ -315,7 +315,6 @@
                 await Store.save(capsProp, capsDefaults);
             }
             const capitalizations = await Store.load(capsProp, capsDefaults);
-            console.debug({ capitalizations });
             const capitalize = makeCapitalizationFixer(capitalizations);
             const bodyFixers = [
                 capitalize,
