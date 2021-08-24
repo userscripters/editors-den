@@ -431,7 +431,7 @@ type AsyncStorage = RemoveIndex<
         text.replace(/\s+([,.?!])/gm, "$1");
 
     const removeTagDuplication = async (title: string) => {
-        const tagPrefixedRegEx = /^(\w+)(?:\s+-|:)\s+/i;
+        const tagPrefixedRegEx = /^(\w+)(?:\s?[-:|])\s+/i;
 
         const [, tagname] = tagPrefixedRegEx.exec(title) || [];
         if (!tagname) return title;
