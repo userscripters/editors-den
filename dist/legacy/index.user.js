@@ -417,7 +417,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
     };
     var makeCapitalizationFixer = function (caps) { return function (text) {
         return caps.reduce(function (a, c) {
-            return a.replace(new RegExp("(\\s+|^)" + c + "(\\s+|$)", "gmi"), "$1" + c + "$2");
+            return a.replace(new RegExp("(\\b|^)" + c + "(\\b|$)", "gmi"), "$1" + c + "$2");
         }, text);
     }; };
     var removeExcessiveLinkFormatting = function (text) {

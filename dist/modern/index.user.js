@@ -252,7 +252,7 @@
         return `${text}\n\n${refsToAdd}`;
     };
     const makeCapitalizationFixer = (caps) => (text) => {
-        return caps.reduce((a, c) => a.replace(new RegExp(`(\\s+|^)${c}(\\s+|$)`, "gmi"), `$1${c}$2`), text);
+        return caps.reduce((a, c) => a.replace(new RegExp(`(\\b|^)${c}(\\b|$)`, "gmi"), `$1${c}$2`), text);
     };
     const removeExcessiveLinkFormatting = (text) => text.replace(/\*{2}(\[.+?\]\(.+?\))\*{2}/gim, "$1");
     const reorderPunctuation = (text) => text.replace(/([?!,.])(\s+\(.+?\))/gm, "$2$1");

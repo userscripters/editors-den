@@ -400,10 +400,7 @@ type AsyncStorage = RemoveIndex<
     const makeCapitalizationFixer = (caps: string[]) => (text: string) => {
         return caps.reduce(
             (a, c) =>
-                a.replace(
-                    new RegExp(`(\\s+|^)${c}(\\s+|$)`, "gmi"),
-                    `$1${c}$2`
-                ),
+                a.replace(new RegExp(`(\\b|^)${c}(\\b|$)`, "gmi"), `$1${c}$2`),
             text
         );
     };
