@@ -6,9 +6,6 @@ interface Document {
     getElementById<T extends HTMLElement>(elementId: string): T | null;
 }
 
-//TODO: expand
-type TagInfo = { name: string };
-
 type StacksCommonOptions = {
     classes?: string[];
 };
@@ -360,7 +357,7 @@ type AsyncStorage = RemoveIndex<
     const getMatchingTags = async (
         search: string,
         version = 2.3
-    ): Promise<TagInfo[]> => {
+    ): Promise<StackExchangeAPI.Tag[]> => {
         const uri = new URL(`https://api.stackexchange.com/${version}/tags`);
         uri.search = new URLSearchParams({
             site: location.hostname,
