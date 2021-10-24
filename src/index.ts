@@ -36,15 +36,11 @@ type RemoveIndex<T> = {
         : P]: T[P];
 };
 
-type AsyncStorage = RemoveIndex<
-    {
-        [P in keyof Storage]: Storage[P] extends Function
-            ? (
-                  ...args: Parameters<Storage[P]>
-              ) => Promise<ReturnType<Storage[P]>>
-            : Promise<Storage[P]>;
-    }
->;
+type AsyncStorage = RemoveIndex<{
+    [P in keyof Storage]: Storage[P] extends Function
+        ? (...args: Parameters<Storage[P]>) => Promise<ReturnType<Storage[P]>>
+        : Promise<Storage[P]>;
+}>;
 
 ((w, d) => {
     const config = {
@@ -90,7 +86,7 @@ type AsyncStorage = RemoveIndex<
                 return (await GM.listValues())[index];
             },
             async getItem(key) {
-                const item = await GM.getValue(key);
+                const item = await GM.getValue<{ toString(): string }>(key);
                 return item === void 0 ? null : item?.toString();
             },
             setItem(key, val) {
