@@ -6,6 +6,10 @@ interface Document {
     getElementById<T extends HTMLElement>(elementId: string): T | null;
 }
 
+interface Body {
+    json<T = any>(): Promise<T>;
+}
+
 type StacksCommonOptions = {
     classes?: string[];
 };
@@ -362,7 +366,9 @@ type AsyncStorage = RemoveIndex<{
         }).toString();
         const res = await fetch(uri.toString());
         if (!res.ok) return [];
-        const { items } = await res.json();
+        const { items } = await res.json<
+            StackExchangeAPI.CommonWrapperObject<StackExchangeAPI.Tag>
+        >();
         return items;
     };
 
