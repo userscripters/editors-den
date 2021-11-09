@@ -46,6 +46,11 @@ type AsyncStorage = RemoveIndex<{
         : Promise<Storage[P]>;
 }>;
 
+type FixerRule = [
+    fixer: (prev: string) => string | Promise<string>,
+    msg?: string
+];
+
 ((w, d) => {
     const config = {
         ids: {
@@ -347,11 +352,16 @@ type AsyncStorage = RemoveIndex<{
         });
     };
 
-    const asyncReduce = <T>(array: ((acc: T) => Promise<T> | T)[], init: T) => {
-        return array.reduce(
-            async (a, c) => await c(await a),
-            Promise.resolve(init)
-        );
+    const ruleReducer = async (array: FixerRule[], init: string) => {
+        const messages: string[] = [];
+        const result = await array.reduce(async (acc, [fixer, msg]) => {
+            const resolvedAcc = await acc;
+            const fixed = await fixer(resolvedAcc);
+            if (fixed !== resolvedAcc && msg) messages.push(msg);
+            return fixed;
+        }, Promise.resolve(init));
+
+        return { result, messages };
     };
 
     const getMatchingTags = async (
@@ -537,23 +547,23 @@ type AsyncStorage = RemoveIndex<{
 
             const capitalize = makeCapitalizationFixer(capitalizations);
 
-            const bodyFixers = [
-                capitalize,
-                removeNoise,
-                removeEmptyLines,
-                removeExcessiveLinkFormatting,
-                removeSalutations,
-                reorderPunctuation,
-                removeSpacesBeforePunctuation,
-                inlineLinksToRefs,
-                removeMultispace,
-                secureLinks,
+            const bodyFixers: FixerRule[] = [
+                [capitalize],
+                [removeNoise],
+                [removeEmptyLines],
+                [removeExcessiveLinkFormatting],
+                [removeSalutations],
+                [reorderPunctuation],
+                [removeSpacesBeforePunctuation],
+                [inlineLinksToRefs],
+                [removeMultispace],
+                [secureLinks],
             ];
 
-            const titleFixers = [
-                removeMultispace,
-                removeTagDuplication,
-                capitalize,
+            const titleFixers: FixerRule[] = [
+                [removeMultispace],
+                [removeTagDuplication],
+                [capitalize],
             ];
 
             //forces preview update
@@ -562,17 +572,29 @@ type AsyncStorage = RemoveIndex<{
                 cancelable: true,
             });
 
+            const allMessages = [];
+
             if (area) {
-                const fixed = await asyncReduce(bodyFixers, area.value);
-                area.value = fixed;
+                const { result, messages } = await ruleReducer(
+                    bodyFixers,
+                    area.value
+                );
+                allMessages.push(...messages);
+                area.value = result;
                 area.dispatchEvent(event);
             }
 
             if (title) {
-                const titleFixed = await asyncReduce(titleFixers, title.value);
-                title.value = titleFixed;
+                const { result, messages } = await ruleReducer(
+                    titleFixers,
+                    title.value
+                );
+                allMessages.push(...messages);
+                title.value = result;
                 title.dispatchEvent(event);
             }
+
+            console.log({ allMessages });
 
             showToast(editSuccessToast, 3);
         });
