@@ -513,6 +513,10 @@ type FixerRule = [
 
             const title = d.getElementById<HTMLInputElement>("title");
 
+            const summary = d.querySelector<HTMLInputElement>(
+                ".js-post-edit-comment-field"
+            );
+
             if (!area && !title) return showToast(notEditableToast, 3);
 
             //TODO: move out of the source
@@ -548,8 +552,8 @@ type FixerRule = [
             const capitalize = makeCapitalizationFixer(capitalizations);
 
             const bodyFixers: FixerRule[] = [
-                [capitalize],
-                [removeNoise],
+                [capitalize, "properly capitalized"],
+                [removeNoise, "removed noise"],
                 [removeEmptyLines],
                 [removeExcessiveLinkFormatting],
                 [removeSalutations],
@@ -562,8 +566,11 @@ type FixerRule = [
 
             const titleFixers: FixerRule[] = [
                 [removeMultispace],
-                [removeTagDuplication],
-                [capitalize],
+                [
+                    removeTagDuplication,
+                    "removed tag from title (see https://stackoverflow.com/help/tagging)",
+                ],
+                [capitalize, "properly capitalized"],
             ];
 
             //forces preview update
@@ -572,14 +579,14 @@ type FixerRule = [
                 cancelable: true,
             });
 
-            const allMessages = [];
+            const allMessages: Set<string> = new Set();
 
             if (area) {
                 const { result, messages } = await ruleReducer(
                     bodyFixers,
                     area.value
                 );
-                allMessages.push(...messages);
+                messages.forEach((m) => allMessages.add(m));
                 area.value = result;
                 area.dispatchEvent(event);
             }
@@ -589,12 +596,20 @@ type FixerRule = [
                     titleFixers,
                     title.value
                 );
-                allMessages.push(...messages);
+                messages.forEach((m) => allMessages.add(m));
                 title.value = result;
                 title.dispatchEvent(event);
             }
 
-            console.log({ allMessages });
+            if (summary) {
+                summary.value = [...allMessages].join("; ");
+                summary.dispatchEvent(
+                    new Event("blur", {
+                        bubbles: true,
+                        cancelable: true,
+                    })
+                );
+            }
 
             showToast(editSuccessToast, 3);
         });
