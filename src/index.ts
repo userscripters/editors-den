@@ -369,6 +369,11 @@ type AsyncStorage = RemoveIndex<{
         const { items } = await res.json<
             StackExchangeAPI.CommonWrapperObject<StackExchangeAPI.Tag>
         >();
+
+        if (!items.length) {
+            return getMatchingTags(search.replace(/[-]/g, ""), version);
+        }
+
         return items;
     };
 
@@ -451,6 +456,14 @@ type AsyncStorage = RemoveIndex<{
         const tags = await getMatchingTags(lcased);
 
         const matchingTag = tags.find(({ name }) => name === lcased);
+
+        if (!matchingTag) {
+            const notdashed = lcased.replace(/[-]/g, "");
+            const tags = await getMatchingTags(notdashed);
+            const matchingTag = tags.find(({ name }) => name === notdashed);
+            return matchingTag ? title.replace(tagPrefixedRegEx, "") : title;
+        }
+
         return matchingTag ? title.replace(tagPrefixedRegEx, "") : title;
     };
 
