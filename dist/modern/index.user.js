@@ -17,7 +17,7 @@
 // @run-at          document-start
 // @source          git+https://github.com/userscripters/editors-den.git
 // @supportURL      https://github.com/userscripters/editors-den/issues
-// @version         0.1.2
+// @version         0.2.0
 // ==/UserScript==
 
 "use strict";
@@ -226,8 +226,16 @@
             action();
         });
     };
-    const asyncReduce = (array, init) => {
-        return array.reduce(async (a, c) => await c(await a), Promise.resolve(init));
+    const ruleReducer = async (array, init) => {
+        const messages = [];
+        const result = await array.reduce(async (acc, [fixer, msg]) => {
+            const resolvedAcc = await acc;
+            const fixed = await fixer(resolvedAcc);
+            if (fixed !== resolvedAcc && msg)
+                messages.push(msg);
+            return fixed;
+        }, Promise.resolve(init));
+        return { result, messages };
     };
     const getMatchingTags = async (search, version = 2.3) => {
         const uri = new URL(`https://api.stackexchange.com/${version}/tags`);
@@ -240,6 +248,9 @@
         if (!res.ok)
             return [];
         const { items } = await res.json();
+        if (!items.length) {
+            return getMatchingTags(search.replace(/[-]/g, ""), version);
+        }
         return items;
     };
     const inlineLinksToRefs = (text) => {
@@ -265,13 +276,19 @@
     const secureLinks = (text) => text.replace(/\bhttp:\/\//gim, "https://");
     const removeSpacesBeforePunctuation = (text) => text.replace(/\s+([,.?!])/gm, "$1");
     const removeTagDuplication = async (title) => {
-        const tagPrefixedRegEx = /^(\w+)(?:\s?[-:|])\s+/i;
+        const tagPrefixedRegEx = /^([\w-]{1,35})(?:\s?[-:|])\s+/i;
         const [, tagname] = tagPrefixedRegEx.exec(title) || [];
         if (!tagname)
             return title;
         const lcased = tagname.toLowerCase();
         const tags = await getMatchingTags(lcased);
         const matchingTag = tags.find(({ name }) => name === lcased);
+        if (!matchingTag) {
+            const notdashed = lcased.replace(/[-]/g, "");
+            const tags = await getMatchingTags(notdashed);
+            const matchingTag = tags.find(({ name }) => name === notdashed);
+            return matchingTag ? title.replace(tagPrefixedRegEx, "") : title;
+        }
         return matchingTag ? title.replace(tagPrefixedRegEx, "") : title;
     };
     const disabledOn = [/chat\.(?:stackoverflow|(meta\.)?stackexchange)\.com/];
@@ -293,6 +310,7 @@
         addMenuItem(mainId, async () => {
             const area = d.querySelector("[name=post-text]");
             const title = d.getElementById("title");
+            const summary = d.querySelector(".js-post-edit-comment-field");
             if (!area && !title)
                 return showToast(notEditableToast, 3);
             const capsDefaults = [
@@ -319,35 +337,48 @@
             const capitalizations = await Store.load(capsProp, capsDefaults);
             const capitalize = makeCapitalizationFixer(capitalizations);
             const bodyFixers = [
-                capitalize,
-                removeNoise,
-                removeEmptyLines,
-                removeExcessiveLinkFormatting,
-                removeSalutations,
-                reorderPunctuation,
-                removeSpacesBeforePunctuation,
-                inlineLinksToRefs,
-                removeMultispace,
-                secureLinks,
+                [capitalize, "properly capitalized"],
+                [removeNoise, "removed noise"],
+                [removeEmptyLines],
+                [removeExcessiveLinkFormatting],
+                [removeSalutations],
+                [reorderPunctuation],
+                [removeSpacesBeforePunctuation],
+                [inlineLinksToRefs],
+                [removeMultispace],
+                [secureLinks],
             ];
             const titleFixers = [
-                removeMultispace,
-                removeTagDuplication,
-                capitalize,
+                [removeMultispace],
+                [
+                    removeTagDuplication,
+                    "removed tag from title (see https://stackoverflow.com/help/tagging)",
+                ],
+                [capitalize, "properly capitalized"],
             ];
             const event = new Event("input", {
                 bubbles: true,
                 cancelable: true,
             });
+            const allMessages = new Set();
             if (area) {
-                const fixed = await asyncReduce(bodyFixers, area.value);
-                area.value = fixed;
+                const { result, messages } = await ruleReducer(bodyFixers, area.value);
+                messages.forEach((m) => allMessages.add(m));
+                area.value = result;
                 area.dispatchEvent(event);
             }
             if (title) {
-                const titleFixed = await asyncReduce(titleFixers, title.value);
-                title.value = titleFixed;
+                const { result, messages } = await ruleReducer(titleFixers, title.value);
+                messages.forEach((m) => allMessages.add(m));
+                title.value = result;
                 title.dispatchEvent(event);
+            }
+            if (summary) {
+                summary.value = [...allMessages].join("; ");
+                summary.dispatchEvent(new Event("blur", {
+                    bubbles: true,
+                    cancelable: true,
+                }));
             }
             showToast(editSuccessToast, 3);
         });

@@ -17,7 +17,7 @@
 // @run-at          document-start
 // @source          git+https://github.com/userscripters/editors-den.git
 // @supportURL      https://github.com/userscripters/editors-den/issues
-// @version         0.1.2
+// @version         0.2.0
 // ==/UserScript==
 
 "use strict";
@@ -370,17 +370,37 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
             action();
         });
     };
-    var asyncReduce = function (array, init) {
-        return array.reduce(function (a, c) { return __awaiter(void 0, void 0, void 0, function () { var _b; return __generator(this, function (_c) {
-            switch (_c.label) {
+    var ruleReducer = function (array, init) { return __awaiter(void 0, void 0, void 0, function () {
+        var messages, result;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
-                    _b = c;
-                    return [4, a];
-                case 1: return [4, _b.apply(void 0, [_c.sent()])];
-                case 2: return [2, _c.sent()];
+                    messages = [];
+                    return [4, array.reduce(function (acc, _b) {
+                            var _c = __read(_b, 2), fixer = _c[0], msg = _c[1];
+                            return __awaiter(void 0, void 0, void 0, function () {
+                                var resolvedAcc, fixed;
+                                return __generator(this, function (_d) {
+                                    switch (_d.label) {
+                                        case 0: return [4, acc];
+                                        case 1:
+                                            resolvedAcc = _d.sent();
+                                            return [4, fixer(resolvedAcc)];
+                                        case 2:
+                                            fixed = _d.sent();
+                                            if (fixed !== resolvedAcc && msg)
+                                                messages.push(msg);
+                                            return [2, fixed];
+                                    }
+                                });
+                            });
+                        }, Promise.resolve(init))];
+                case 1:
+                    result = _b.sent();
+                    return [2, { result: result, messages: messages }];
             }
-        }); }); }, Promise.resolve(init));
-    };
+        });
+    }); };
     var getMatchingTags = function (search, version) {
         if (version === void 0) { version = 2.3; }
         return __awaiter(void 0, void 0, void 0, function () {
@@ -402,6 +422,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
                         return [4, res.json()];
                     case 2:
                         items = (_b.sent()).items;
+                        if (!items.length) {
+                            return [2, getMatchingTags(search.replace(/[-]/g, ""), version)];
+                        }
                         return [2, items];
                 }
             });
@@ -447,11 +470,11 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
         return text.replace(/\s+([,.?!])/gm, "$1");
     };
     var removeTagDuplication = function (title) { return __awaiter(void 0, void 0, void 0, function () {
-        var tagPrefixedRegEx, _b, tagname, lcased, tags, matchingTag;
+        var tagPrefixedRegEx, _b, tagname, lcased, tags, matchingTag, notdashed_1, tags_1, matchingTag_1;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    tagPrefixedRegEx = /^(\w+)(?:\s?[-:|])\s+/i;
+                    tagPrefixedRegEx = /^([\w-]{1,35})(?:\s?[-:|])\s+/i;
                     _b = __read(tagPrefixedRegEx.exec(title) || [], 2), tagname = _b[1];
                     if (!tagname)
                         return [2, title];
@@ -463,7 +486,17 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
                         var name = _b.name;
                         return name === lcased;
                     });
-                    return [2, matchingTag ? title.replace(tagPrefixedRegEx, "") : title];
+                    if (!!matchingTag) return [3, 3];
+                    notdashed_1 = lcased.replace(/[-]/g, "");
+                    return [4, getMatchingTags(notdashed_1)];
+                case 2:
+                    tags_1 = _c.sent();
+                    matchingTag_1 = tags_1.find(function (_b) {
+                        var name = _b.name;
+                        return name === notdashed_1;
+                    });
+                    return [2, matchingTag_1 ? title.replace(tagPrefixedRegEx, "") : title];
+                case 3: return [2, matchingTag ? title.replace(tagPrefixedRegEx, "") : title];
             }
         });
     }); };
@@ -484,12 +517,13 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
         });
         d.body.append(notEditableToast, editSuccessToast);
         addMenuItem(mainId, function () { return __awaiter(void 0, void 0, void 0, function () {
-            var area, title, capsDefaults, capsProp, isInitialized, capitalizations, capitalize, bodyFixers, titleFixers, event, fixed, titleFixed;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var area, title, summary, capsDefaults, capsProp, isInitialized, capitalizations, capitalize, bodyFixers, titleFixers, event, allMessages, _b, result, messages, _c, result, messages;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         area = d.querySelector("[name=post-text]");
                         title = d.getElementById("title");
+                        summary = d.querySelector(".js-post-edit-comment-field");
                         if (!area && !title)
                             return [2, showToast(notEditableToast, 3)];
                         capsDefaults = [
@@ -511,53 +545,66 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
                         capsProp = "capitalizations";
                         return [4, Store.has(capsProp)];
                     case 1:
-                        isInitialized = _b.sent();
+                        isInitialized = _d.sent();
                         if (!!isInitialized) return [3, 3];
                         return [4, Store.save(capsProp, capsDefaults)];
                     case 2:
-                        _b.sent();
-                        _b.label = 3;
+                        _d.sent();
+                        _d.label = 3;
                     case 3: return [4, Store.load(capsProp, capsDefaults)];
                     case 4:
-                        capitalizations = _b.sent();
+                        capitalizations = _d.sent();
                         capitalize = makeCapitalizationFixer(capitalizations);
                         bodyFixers = [
-                            capitalize,
-                            removeNoise,
-                            removeEmptyLines,
-                            removeExcessiveLinkFormatting,
-                            removeSalutations,
-                            reorderPunctuation,
-                            removeSpacesBeforePunctuation,
-                            inlineLinksToRefs,
-                            removeMultispace,
-                            secureLinks,
+                            [capitalize, "properly capitalized"],
+                            [removeNoise, "removed noise"],
+                            [removeEmptyLines],
+                            [removeExcessiveLinkFormatting],
+                            [removeSalutations],
+                            [reorderPunctuation],
+                            [removeSpacesBeforePunctuation],
+                            [inlineLinksToRefs],
+                            [removeMultispace],
+                            [secureLinks],
                         ];
                         titleFixers = [
-                            removeMultispace,
-                            removeTagDuplication,
-                            capitalize,
+                            [removeMultispace],
+                            [
+                                removeTagDuplication,
+                                "removed tag from title (see https://stackoverflow.com/help/tagging)",
+                            ],
+                            [capitalize, "properly capitalized"],
                         ];
                         event = new Event("input", {
                             bubbles: true,
                             cancelable: true,
                         });
+                        allMessages = new Set();
                         if (!area) return [3, 6];
-                        return [4, asyncReduce(bodyFixers, area.value)];
+                        return [4, ruleReducer(bodyFixers, area.value)];
                     case 5:
-                        fixed = _b.sent();
-                        area.value = fixed;
+                        _b = _d.sent(), result = _b.result, messages = _b.messages;
+                        messages.forEach(function (m) { return allMessages.add(m); });
+                        area.value = result;
                         area.dispatchEvent(event);
-                        _b.label = 6;
+                        _d.label = 6;
                     case 6:
                         if (!title) return [3, 8];
-                        return [4, asyncReduce(titleFixers, title.value)];
+                        return [4, ruleReducer(titleFixers, title.value)];
                     case 7:
-                        titleFixed = _b.sent();
-                        title.value = titleFixed;
+                        _c = _d.sent(), result = _c.result, messages = _c.messages;
+                        messages.forEach(function (m) { return allMessages.add(m); });
+                        title.value = result;
                         title.dispatchEvent(event);
-                        _b.label = 8;
+                        _d.label = 8;
                     case 8:
+                        if (summary) {
+                            summary.value = __spreadArray([], __read(allMessages), false).join("; ");
+                            summary.dispatchEvent(new Event("blur", {
+                                bubbles: true,
+                                cancelable: true,
+                            }));
+                        }
                         showToast(editSuccessToast, 3);
                         return [2];
                 }

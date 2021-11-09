@@ -1,6 +1,6 @@
 {
     "name": "@userscripters/editors-den",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "description": "semi-automated editing with style",
     "scripts": {
         "test": "mocha",
