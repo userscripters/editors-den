@@ -1,12 +1,12 @@
 
 # About
 
-| Author       | Oleg Valter<br>email: [oleg.a.valter@gmail.com](mailto:oleg.a.valter@gmail.com) |
+| Author       | Oleg Valter<br>[oleg.a.valter@gmail.com](mailto:oleg.a.valter@gmail.com) |
 | :----------- | :----------------------- |
-| Name         | @userscripters/editors-den    |
-| Description  | semi-automated editing with style           |
-| License      | [GPL-3.0-or-later](https://spdx.org/licenses/GPL-3.0-or-later)                 |
-| Version      | 0.1.1               |
+| Name | @userscripters/editors-den |
+| Description | semi-automated editing with style |
+| License | [GPL-3.0-or-later](https://spdx.org/licenses/GPL-3.0-or-later) |
+| Version | 0.1.1 |
 
 # Support
 
