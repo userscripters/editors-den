@@ -17,7 +17,7 @@
 // @run-at          document-start
 // @source          git+https://github.com/userscripters/editors-den.git
 // @supportURL      https://github.com/userscripters/editors-den/issues
-// @version         0.1.1
+// @version         0.1.2
 // ==/UserScript==
 
 "use strict";
@@ -73,10 +73,14 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 (function (w, d) {
     var config = {
@@ -271,7 +275,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         var _d = _b === void 0 ? {} : _b, _e = _d.classes, classes = _e === void 0 ? [] : _e, _f = _d.width, width = _f === void 0 ? 14 : _f, _g = _d.height, height = _g === void 0 ? width : _g;
         var ns = "http://www.w3.org/2000/svg";
         var svg = document.createElementNS(ns, "svg");
-        (_c = svg.classList).add.apply(_c, __spreadArray(["svg-icon", name], __read(classes)));
+        (_c = svg.classList).add.apply(_c, __spreadArray(["svg-icon", name], __read(classes), false));
         svg.setAttribute("width", width.toString());
         svg.setAttribute("height", height.toString());
         svg.setAttribute("viewBox", "0 0 " + width + " " + height);
@@ -285,7 +289,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         var _c, _d;
         var _e = _b === void 0 ? {} : _b, _f = _e.buttons, buttons = _f === void 0 ? [] : _f, _g = _e.classes, classes = _g === void 0 ? [] : _g, _h = _e.msgClasses, msgClasses = _h === void 0 ? [] : _h, _j = _e.type, type = _j === void 0 ? "none" : _j, _k = _e.important, important = _k === void 0 ? false : _k;
         var wrap = document.createElement("div");
-        (_c = wrap.classList).add.apply(_c, __spreadArray(["s-toast"], __read(classes)));
+        (_c = wrap.classList).add.apply(_c, __spreadArray(["s-toast"], __read(classes), false));
         wrap.setAttribute("aria-hidden", "true");
         wrap.setAttribute("role", "alertdialog");
         wrap.setAttribute("aria-labelledby", "notice-message");
@@ -301,7 +305,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
             "gs16",
             "gsx",
             "ai-center",
-            "jc-space-between"], __read(msgClasses)));
+            "jc-space-between"], __read(msgClasses), false));
         var message = document.createElement("div");
         message.classList.add("flex--item");
         message.textContent = text;
@@ -314,7 +318,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         buttons.push(dismissBtn);
         var _l = __read(makeStacksIcon("iconClearSm", "M12 3.41 10.59 2 7 5.59 3.41 2 2 3.41 5.59 7 2 10.59 3.41 12 7 8.41 10.59 12 12 10.59 8.41 7 12 3.41z", { width: 14 }), 1), dismissIcon = _l[0];
         dismissBtn.append(dismissIcon);
-        btnWrap.append.apply(btnWrap, __spreadArray([], __read(buttons)));
+        btnWrap.append.apply(btnWrap, __spreadArray([], __read(buttons), false));
         msgWrap.append(message, btnWrap);
         aside.append(msgWrap);
         wrap.append(aside);
@@ -406,9 +410,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
     var inlineLinksToRefs = function (text) {
         var linkRegex = /\[([\w\s:'#-?]+)\]\(([\w:/.#-]+)\)/gim;
         var refsRegex = /\[\d+\]: \w+/gim;
-        var refMatches = __spreadArray([], __read(text.matchAll(refsRegex)));
+        var refMatches = __spreadArray([], __read(text.matchAll(refsRegex)), false);
         var existing = refMatches.length;
-        var matches = __spreadArray([], __read(text.matchAll(linkRegex)));
+        var matches = __spreadArray([], __read(text.matchAll(linkRegex)), false);
         var refsToAdd = matches.reduce(function (acc, _b, idx) {
             var _c = __read(_b, 3), _ = _c[0], _text = _c[1], link = _c[2];
             return acc + "[" + (existing + idx + 1) + "]: " + link + "\n";
@@ -417,7 +421,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
     };
     var makeCapitalizationFixer = function (caps) { return function (text) {
         return caps.reduce(function (a, c) {
-            return a.replace(new RegExp("(\\b|^)" + c + "(\\b|$)", "gmi"), "$1" + c + "$2");
+            return a
+                .replace(new RegExp("(?:(`{3,}[\\s\\S]*?|))(\\b)" + c + "(\\b)(?![\\s\\S]*?`{3,})", "gmi"), "$1" + c + "$2")
+                .replace(new RegExp("(?<!`{3,}[\\s\\S]*?)(\\b)" + c + "(\\b)(?:|[\\s\\S]*?`{3,})", "gmi"), "$1" + c + "$2");
         }, text);
     }; };
     var removeExcessiveLinkFormatting = function (text) {
