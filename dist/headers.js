@@ -17,5 +17,5 @@
 // @run-at          document-start
 // @source          git+https://github.com/userscripters/editors-den.git
 // @supportURL      https://github.com/userscripters/editors-den/issues
-// @version         0.2.0
+// @version         0.2.1
 // ==/UserScript==

@@ -6,7 +6,7 @@
 | Name | @userscripters/editors-den |
 | Description | semi-automated editing with style |
 | License | [GPL-3.0-or-later](https://spdx.org/licenses/GPL-3.0-or-later) |
-| Version | 0.2.0 |
+| Version | 0.2.1 |
 
 # Support
 

@@ -17,7 +17,7 @@
 // @run-at          document-start
 // @source          git+https://github.com/userscripters/editors-den.git
 // @supportURL      https://github.com/userscripters/editors-den/issues
-// @version         0.2.0
+// @version         0.2.1
 // ==/UserScript==
 
 "use strict";
@@ -264,8 +264,8 @@
     };
     const makeCapitalizationFixer = (caps) => (text) => {
         return caps.reduce((a, c) => a
-            .replace(new RegExp(`(?:(\`{3,}[\\s\\S]*?|))(\\b)${c}(\\b)(?![\\s\\S]*?\`{3,})`, "gmi"), `$1${c}$2`)
-            .replace(new RegExp(`(?<!\`{3,}[\\s\\S]*?)(\\b)${c}(\\b)(?:|[\\s\\S]*?\`{3,})`, "gmi"), `$1${c}$2`), text);
+            .replace(new RegExp(`(?:(\`{3,}[\\s\\S]*?|))(?<!(?:http|ws|ftp)s?:\\/\\/.*?)(\\b)${c}(\\b)(?![\\s\\S]*?\`{3,})`, "gmi"), `$1${c}$2`)
+            .replace(new RegExp(`(?<!\`{3,}[\\s\\S]*?|\\b(?:http|ws|ftp)s?:\\/\\/.*?)(\\b)${c}(\\b)(?:|[\\s\\S]*?\`{3,})`, "gmi"), `$1${c}$2`), text);
     };
     const removeExcessiveLinkFormatting = (text) => text.replace(/\*{2}(\[.+?\]\(.+?\))\*{2}/gim, "$1");
     const reorderPunctuation = (text) => text.replace(/([?!,.])(\s+\(.+?\))/gm, "$2$1");

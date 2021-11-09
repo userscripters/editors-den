@@ -17,7 +17,7 @@
 // @run-at          document-start
 // @source          git+https://github.com/userscripters/editors-den.git
 // @supportURL      https://github.com/userscripters/editors-den/issues
-// @version         0.2.0
+// @version         0.2.1
 // ==/UserScript==
 
 "use strict";
@@ -445,8 +445,8 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     var makeCapitalizationFixer = function (caps) { return function (text) {
         return caps.reduce(function (a, c) {
             return a
-                .replace(new RegExp("(?:(`{3,}[\\s\\S]*?|))(\\b)" + c + "(\\b)(?![\\s\\S]*?`{3,})", "gmi"), "$1" + c + "$2")
-                .replace(new RegExp("(?<!`{3,}[\\s\\S]*?)(\\b)" + c + "(\\b)(?:|[\\s\\S]*?`{3,})", "gmi"), "$1" + c + "$2");
+                .replace(new RegExp("(?:(`{3,}[\\s\\S]*?|))(?<!(?:http|ws|ftp)s?:\\/\\/.*?)(\\b)" + c + "(\\b)(?![\\s\\S]*?`{3,})", "gmi"), "$1" + c + "$2")
+                .replace(new RegExp("(?<!`{3,}[\\s\\S]*?|\\b(?:http|ws|ftp)s?:\\/\\/.*?)(\\b)" + c + "(\\b)(?:|[\\s\\S]*?`{3,})", "gmi"), "$1" + c + "$2");
         }, text);
     }; };
     var removeExcessiveLinkFormatting = function (text) {
