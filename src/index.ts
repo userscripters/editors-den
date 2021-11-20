@@ -433,6 +433,9 @@ type FixerRule = [
         );
     };
 
+    const uncapslock = (text: string) =>
+        /^[A-Z\W]+$/.test(text) ? text.toLowerCase() : text;
+
     const removeExcessiveLinkFormatting = (text: string) =>
         text.replace(/\*{2}(\[.+?\]\(.+?\))\*{2}/gim, "$1");
 
@@ -552,6 +555,7 @@ type FixerRule = [
             const capitalize = makeCapitalizationFixer(capitalizations);
 
             const bodyFixers: FixerRule[] = [
+                [uncapslock],
                 [capitalize, "properly capitalized"],
                 [removeNoise, "removed noise"],
                 [removeEmptyLines],
@@ -570,6 +574,7 @@ type FixerRule = [
                     removeTagDuplication,
                     "removed tag from title (see https://stackoverflow.com/help/tagging)",
                 ],
+                [uncapslock],
                 [capitalize, "properly capitalized"],
             ];
 
